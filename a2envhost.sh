@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 
+my_work="$HOME/work/";
 home () {
-    local my_work="$HOME/work/";
-    local target_file="$HOME/etc/apache2/sites-available/$1.conf";
-    local my_s_enabled="$HOME/etc/apache2/sites-enabled/$1.conf";
+    local target_file="$HOME/etc/apache2/sites-available/$proj.conf";
+    local my_s_enabled="$HOME/etc/apache2/sites-enabled/$proj.conf";
 
-    if [[ -d $my_work && $(find $my_work"/"$1 -type d) ]]; then
-        local default_domain_name="$1.local";
+    if [[ -d $my_work && $(find $my_work"/"$proj -type d) ]]; then
+        local default_domain_name="$proj.local";
         local default_email="$(git config --global user.email)";
-        local default_project_name="$1";
+        local default_project_name=$proj;
         local project_dir=$my_work$default_project_name
 
         cp "template.conf" $target_file;
@@ -28,4 +28,13 @@ home () {
     fi
 }
 
-home $1;
+if [ $1 ]; then
+    proj=$1;
+    home '${proj}';
+else
+    for proj in $(ls -l $my_work | egrep '^d' | awk '{print $9}'); do
+        if [ $proj ]; then
+            home '${proj}';
+        fi
+    done
+fi
