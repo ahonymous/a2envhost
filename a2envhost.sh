@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 my_work="$HOME/work/";
-home () {
+function home () {
     local target_file="$HOME/etc/apache2/sites-available/$proj.conf";
     local my_s_enabled="$HOME/etc/apache2/sites-enabled/$proj.conf";
 
@@ -11,7 +11,7 @@ home () {
         local default_project_name=$proj;
         local project_dir=$my_work$default_project_name
 
-        cp "template.conf" $target_file;
+        curl "https://raw.githubusercontent.com/ahonymous/a2envhost/master/apache24_vhost.conf" >> $target_file;
 
         if [ ! -L $my_s_enabled ]; then
             ln -s $target_file $my_s_enabled;
@@ -23,18 +23,36 @@ home () {
         sed -i 's|{{PROJECT_NAME}}|'$default_project_name'|g' $target_file
 
         if [[ ! $(grep $default_domain_name "/etc/hosts") ]]; then
-            sudo sh -c "echo '127.0.0.1    $default_domain_name' >> /etc/hosts && service apache2 restart";
+            sudo sh -c "echo '127.0.0.1    $default_domain_name' >> /etc/hosts";
         fi
     fi
 }
 
+if [[ $(apache2ctl -M | grep rewrite) == /dev/null ]]; then
+    sudo sh -c "a2enmod rewrite";
+fi
+
+if [[ $(apache2ctl -M | grep vhost_alias) == /dev/null ]]; then
+    sudo sh -c "a2enmod vhost_alias";
+fi
+
+if [[ $(apache2ctl -M | grep headers) == /dev/null ]]; then
+    sudo sh -c "a2enmod headers";
+fi
+
+if [[ $(apache2ctl -M | grep filter) == /dev/null ]]; then
+    sudo sh -c "a2enmod filter";
+fi
+
 if [ $1 ]; then
     proj=$1;
-    home '${proj}';
+    home ${proj};
 else
     for proj in $(ls -l $my_work | egrep '^d' | awk '{print $9}'); do
         if [ $proj ]; then
-            home '${proj}';
+            home ${proj};
         fi
     done
 fi
+
+sudo sh -c "service apache2 restart";
