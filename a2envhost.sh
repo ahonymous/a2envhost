@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
 my_work="$HOME/work/";
+
+rm -rf $HOME/etc/apache2/sites-available/*
+rm -rf $HOME/etc/apache2/sites-enabled/*
+
 function home () {
     local target_file="$HOME/etc/apache2/sites-available/$proj.conf";
     local my_s_enabled="$HOME/etc/apache2/sites-enabled/$proj.conf";
